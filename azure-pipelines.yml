@@ -1,0 +1,59 @@
+# .NET Desktop
+# Build and run tests for .NET Desktop or Windows classic desktop solutions.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+trigger:
+- main
+
+pool: my-personal-computer
+
+name: 1.0.$(Rev:r)
+jobs:
+  - job: BuildAndTest
+    displayName: Build and Test
+    steps:
+      - task: DotNetCoreCLI@2
+        displayName: dotnet restore
+        inputs:
+          command: 'restore'
+          projects: '**/*.csproj'
+          feedsToUse: 'select'
+          vstsFeed: '3f5801d7-09e7-422f-b29a-9116dbef3f23/9b61d918-8b35-4522-b988-cff305392caa'
+      - task: DotNetCoreCLI@2
+        displayName: dotnet build
+        inputs:
+          azureSubscription: 'Azure for Students(d549711b-f75c-4fb6-81d9-066ccb7b0e42)'
+          command: 'build'
+          projects: '**/*.csproj'
+      - task: DotNetCoreCLI@2
+        displayName: dotnet test
+        inputs:
+          command: 'test'
+          projects: '**/*.Tests.csproj'
+  - job:
+    displayName: Create Nuget Package
+    dependsOn: BuildAndTest
+    condition: succeeded()
+    steps:      
+    - task: DotNetCoreCLI@2
+      displayName: dotnet pack
+      inputs:
+        command: 'pack'
+        packagesToPack: '**/Doc.Template.Lib.csproj'
+        versioningScheme: 'byBuildNumber'
+
+    - task: DotNetCoreCLI@2
+      displayName: dotnet push
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+        nuGetFeedType: 'internal'
+        publishVstsFeed: '3f5801d7-09e7-422f-b29a-9116dbef3f23/9b61d918-8b35-4522-b988-cff305392caa'
+    - task: PublishBuildArtifacts@1
+      displayName: publish artifact
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        TargetPath: '\\Doc.Template.Lib\$(Build.DefinitionName)\$(Build.BuildNumber)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
