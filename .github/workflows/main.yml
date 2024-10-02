@@ -54,7 +54,7 @@ jobs:
           dotnet pack -c Release --version-suffix 1.0.1
     
       - name: 'dotnet publish'
-        run: dotnet nuget push  --api-key az ./src/Doc.Template.Lib/bin/Release/*.nupkg
+        run: dotnet nuget push  --api-key az .\src\Doc.Template.Lib\bin\Release\*.nupkg
         
       
     
