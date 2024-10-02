@@ -51,7 +51,7 @@ jobs:
         run: |
           dotnet restore
           dotnet build --configuration Release
-          dotnet pack -c Release --version-suffix $GITHUB_RUN_ID
+          dotnet pack -c Release --version-suffix 1.0.1
     
       - name: 'dotnet publish'
         run: dotnet nuget push  --api-key az bin/Release/*.nupkg
