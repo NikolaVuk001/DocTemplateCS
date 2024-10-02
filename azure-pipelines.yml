@@ -7,7 +7,7 @@ trigger:
 - main
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: my-personal-computer
 
 jobs:
   - job: BuildAndTest
