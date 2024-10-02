@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>.docx Template Manipulation Library</Title>
+    <Company>Nikola Vukasinovic</Company>
+    <Description>C# Library for manipulation templated .docx files</Description>
+    <RepositoryUrl>https://github.com/NikolaVuk001/DocTemplateCS</RepositoryUrl>
+    <PackageReleaseNotes>Initial Realese With Minor but needed funtionatiles</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.1.0" />
+  </ItemGroup>
+
+</Project>
