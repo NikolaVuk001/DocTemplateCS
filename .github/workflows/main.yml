@@ -1,0 +1,61 @@
+name: DocTemplateCs-ci
+
+on:
+  push:
+    branches:
+    - main
+  workflow_dispatch:
+
+env:
+  AZURE_ARTIFACT_FEED_URL: https://pkgs.dev.azure.com/nikola37121its/NugetPackages/_packaging/DzoniNugetFeed/nuget/v3/index.json
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  BuildAndTest:
+    runs-on: windows-latest        
+    steps:      
+      - uses: actions/checkout@v4.2.0
+      
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v4.0.1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      # - name: Setup NuGet.exe for use with actions
+      #   uses: NuGet/setup-nuget@v2.0.0
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: dotnet test
+
+  CreateNugetAndDeploy:
+    needs: BuildAndTest
+    runs-on: windows-latest
+    steps:      
+      - uses: actions/checkout@v4.2.0
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v4.0.1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          source-url: ${{ env.AZURE_ARTIFACT_FEED_URL }}
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.AZURE_DEVOPS_TOKEN }} 
+
+      - name: dotnet build and publish
+        run: |
+          dotnet restore
+          dotnet build --configuration Release
+          dotnet pack -c Release --version-suffix $GITHUB_RUN_ID
+    
+      - name: 'dotnet publish'
+        run: dotnet nuget push  --api-key az bin/Release/*.nupkg
+        
+      
+    
+      
