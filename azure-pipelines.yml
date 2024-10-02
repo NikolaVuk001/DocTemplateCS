@@ -6,8 +6,7 @@
 trigger:
 - main
 
-pool:
-  vmImage: my-personal-computer
+pool: my-personal-computer
 
 jobs:
   - job: BuildAndTest
