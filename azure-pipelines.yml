@@ -8,6 +8,7 @@ trigger:
 
 pool: my-personal-computer
 
+name: 1.0.$(Rev:r)
 jobs:
   - job: BuildAndTest
     displayName: Build and Test
