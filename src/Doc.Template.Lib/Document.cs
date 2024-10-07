@@ -7,13 +7,19 @@ namespace WordsCS
 {
 	public class Document : IDisposable
 	{
+		public Document()
+		{			
+		}
 
-		public Document(string pathToTemplateDoc)
+
+		public async Task SetTemplateAsync(string pathToTemplateDoc)
 		{
-			PathToDoc = GenerateTempDoc(pathToTemplateDoc);
-
+			PathToDoc = await GenerateTempDocAsync(pathToTemplateDoc);
 			PathToTemplate = pathToTemplateDoc;
 		}
+
+
+		
 
         ~Document()
 		{
@@ -80,7 +86,7 @@ namespace WordsCS
 			}
 		}
 
-		private async Task<string> GenerateTempDoc(string pathToTemplateDoc)
+		private async Task<string> GenerateTempDocAsync(string pathToTemplateDoc)
 		{
 			if(!File.Exists(pathToTemplateDoc))
 			{

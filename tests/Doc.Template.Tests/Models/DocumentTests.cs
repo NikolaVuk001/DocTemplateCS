@@ -17,14 +17,15 @@ namespace Words.CS.Tests.Models
     public class DocumentTests
     {
         [Fact()]
-        public void DocumentCtor_WithValidPathToFile_ShouldCreateNewDocumentInTempFolder()
+        public async Task SetTemplateAsync_WithValidPathToFile_ShouldCreateNewDocumentInTempFolderAndSetTemplateDocPath()
         {
 			// arrange
-			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";                  
+			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
+			Document document = new Document();
 
-            // act
-            
-            Document document = new Document(pathToTemplate);
+			// act
+
+			await document.SetTemplateAsync(pathToTemplate);
 
             // assert
 
@@ -37,32 +38,34 @@ namespace Words.CS.Tests.Models
         }
 
         [Fact()]
-        public void DocumentCtor_WithInvalidPathToFile_ShouldThrowFileNotFoundException()
+        public async Task SetTemplateAsync_WithInvalidPathToFile_ShouldThrowFileNotFoundException()
         {
             // arrange
 
             var pathToTemplate = "./InvalidFile.docx";
+            Document document = new Document();
 
             // act
 
-            Action action = () => { Document document = new Document(pathToTemplate); };
+            Func<Task> action = async () => {await document.SetTemplateAsync(pathToTemplate); };
 
 
 
             // assert
-            action.Should().Throw<FileNotFoundException>()
+            await action.Should().ThrowAsync<FileNotFoundException>()
                 .WithMessage($"No template found at this location: {pathToTemplate}");
         }
 
         [Fact()]
-        public void DocumentDestructor_WithValidPathToFile_ShouldDeleteCreatedDocumentInTemp()
+        public async Task DocumentDestructor_WithValidPathToFile_ShouldDeleteCreatedDocumentInTemp()
         {
 			// arrange
 			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\DestTest.docx";
 
 			// act
-			using (Document doc = new Document(pathToTemplate))
+			using (Document doc = new Document())
             {                           
+                await doc.SetTemplateAsync(pathToTemplate);
             }
 			Thread.Sleep(1000);
 			System.GC.Collect();
@@ -75,14 +78,16 @@ namespace Words.CS.Tests.Models
 
         [Fact()]
 
-        public void FindAndReplace_WithValidPhrases_ShouldContainPhraseToReplaceThreeTimes()
+        public async Task FindAndReplace_WithValidPhrases_ShouldContainPhraseToReplaceThreeTimes()
         {
 			// arrange 
 
 			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
 			var fileName = Path.GetFileName(pathToTemplate);
 
-			Document document = new Document(pathToTemplate);
+			Document document = new Document();
+
+            await document.SetTemplateAsync(pathToTemplate);
 
             var phraseToFind = "Name";
             var phraseToReplace = "Changed Text";
@@ -109,14 +114,15 @@ namespace Words.CS.Tests.Models
 		}
 
         [Fact()]
-        public void FindAndReplace_WithValidPhrasesOnlyFirst_ShouldContainPhraseToReplaceOnce()
+        public async Task FindAndReplace_WithValidPhrasesOnlyFirst_ShouldContainPhraseToReplaceOnce()
         {
             // arrange
 
             var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
             var fileName = Path.GetFileName(pathToTemplate);
 
-            Document document = new Document(pathToTemplate);
+            Document document = new Document();
+            await document.SetTemplateAsync(pathToTemplate);
 
             var phraseToFind = "Name";
             var phraseToReplace = "Changed Text";
@@ -147,7 +153,7 @@ namespace Words.CS.Tests.Models
 		}
 
         [Fact()]
-        public void copyElementAfter_WithValidDocument_ShouldAddNewParagraphToDocument()
+        public async Task copyElementAfter_WithValidDocument_ShouldAddNewParagraphToDocument()
         {
 			// arrange 
 
@@ -155,7 +161,8 @@ namespace Words.CS.Tests.Models
 			var fileName = Path.GetFileName(pathToTemplate);
             var startingLineOfParagraphToCopy = "Name";
 
-			Document document = new Document(pathToTemplate);
+			Document document = new Document();
+            await document.SetTemplateAsync(pathToTemplate);
 
 			// act
 
