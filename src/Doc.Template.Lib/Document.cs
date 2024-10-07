@@ -10,7 +10,7 @@ namespace WordsCS
 
 		public Document(string pathToTemplateDoc)
 		{
-			PathToDoc = generateTempDoc(pathToTemplateDoc);
+			PathToDoc = GenerateTempDoc(pathToTemplateDoc);
 
 			PathToTemplate = pathToTemplateDoc;
 		}
@@ -80,7 +80,7 @@ namespace WordsCS
 			}
 		}
 
-		private string? generateTempDoc(string pathToTemplateDoc)
+		private async Task<string> GenerateTempDoc(string pathToTemplateDoc)
 		{
 			if(!File.Exists(pathToTemplateDoc))
 			{
@@ -92,9 +92,17 @@ namespace WordsCS
 				Directory.CreateDirectory(PathConstants.TempFolderPath);
 			}
 
+			string destinationPath = Path.Combine(PathConstants.TempFolderPath, fileName);
+
 			try
 			{
-				File.Copy(pathToTemplateDoc, @$"{PathConstants.TempFolderPath}{fileName}", true);
+				using(FileStream sourceStream = new FileStream(pathToTemplateDoc, FileMode.Open, FileAccess.Read, FileShare.Read))
+				{
+					using(FileStream destStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None))
+					{
+						await sourceStream.CopyToAsync(destStream);
+					}
+				}
 			}
 			catch (UnauthorizedAccessException ex)
 			{
@@ -105,7 +113,7 @@ namespace WordsCS
 				throw ex;
 			}
 
-			return @$"{PathConstants.TempFolderPath}{fileName}";
+			return destinationPath;
 		}
 
 
