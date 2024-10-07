@@ -75,7 +75,7 @@ namespace Words.CS.Tests.Models
 
         [Fact()]
 
-        public void FindAndReplace_WithValidPhrases_ShouldChangeDocumentHash()
+        public void FindAndReplace_WithValidPhrases_ShouldContainPhraseToReplaceThreeTimes()
         {
 			// arrange 
 
@@ -84,23 +84,65 @@ namespace Words.CS.Tests.Models
 
 			Document document = new Document(pathToTemplate);
 
-            var phraseToFind = "lorem";
-            var phraseToReplace = "Changed";
+            var phraseToFind = "Name";
+            var phraseToReplace = "Changed Text";
+            var count = 0;
 
             // act
             document.FindAndReplace(phraseToFind, phraseToReplace);
 
-			// assert           			
-			using (var doc = WordprocessingDocument.Open(document.PathToDoc, false))
-            {
-                doc.MainDocumentPart.Should().NotBeNull();
+			// assert
+			document.PathToDoc.Should().NotBeNull();
 
-                foreach(var textElem in doc.MainDocumentPart!.Document.Descendants<Text>())
-                {
-					textElem.Text.Contains(phraseToFind).Should().BeFalse();
+			using (var doc = WordprocessingDocument.Open(document.PathToDoc!, false))
+			{
+				foreach (var textElem in doc.MainDocumentPart!.Document.Descendants<Text>())
+				{
+					if (textElem.Text.Contains(phraseToReplace))
+					{
+						count++;
+					}
 				}
-                
-            }
+			}
+			count.Should().Be(3);
+
+		}
+
+        [Fact()]
+        public void FindAndReplace_WithValidPhrasesOnlyFirst_ShouldContainPhraseToReplaceOnce()
+        {
+            // arrange
+
+            var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
+            var fileName = Path.GetFileName(pathToTemplate);
+
+            Document document = new Document(pathToTemplate);
+
+            var phraseToFind = "Name";
+            var phraseToReplace = "Changed Text";
+            var count = 0;
+
+			
+
+			// act
+
+			document.FindAndReplace(phraseToFind, phraseToReplace, true);
+
+			// assert 
+
+			document.PathToDoc.Should().NotBeNull();
+
+			using (var doc = WordprocessingDocument.Open(document.PathToDoc!, false))
+			{
+				foreach (var textElem in doc.MainDocumentPart!.Document.Descendants<Text>())
+				{
+					if (textElem.Text.Contains(phraseToReplace))
+					{
+						count++;
+					}
+				}
+			}
+            count.Should().Be(1);
 
 		}
 

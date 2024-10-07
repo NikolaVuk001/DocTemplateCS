@@ -15,14 +15,14 @@ namespace WordsCS
 			PathToTemplate = pathToTemplateDoc;
 		}
 
-		~Document()
+        ~Document()
 		{
 			Dispose();
 		}
 
 
 
-		public void FindAndReplace(string phraseToFind, string phraseToReplace)
+		public void FindAndReplace(string phraseToFind, string phraseToReplace, bool replaceOnlyFirstOccurence = false)
 		{
 			if (PathToDoc is null)
 			{
@@ -44,6 +44,10 @@ namespace WordsCS
 					if (text.Text.Contains(phraseToFind))
 					{
 						text.Text = text.Text.Replace(phraseToFind, phraseToReplace);
+						if(replaceOnlyFirstOccurence)
+						{
+							break;
+						}							
 					}
 				}
 			}
@@ -103,6 +107,7 @@ namespace WordsCS
 
 			return @$"{PathConstants.TempFolderPath}{fileName}";
 		}
+
 
 		public void Dispose()
 		{						
