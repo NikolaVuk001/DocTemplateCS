@@ -96,13 +96,13 @@ namespace WordsCS
 			{
 				File.Copy(pathToTemplateDoc, @$"{PathConstants.TempFolderPath}{fileName}", true);
 			}
-			catch (UnauthorizedAccessException)
+			catch (UnauthorizedAccessException ex)
 			{
-				return null;
+				throw ex;				
 			}
-			catch (Exception)
+			catch (Exception ex)
 			{
-				return null;
+				throw ex;
 			}
 
 			return @$"{PathConstants.TempFolderPath}{fileName}";
