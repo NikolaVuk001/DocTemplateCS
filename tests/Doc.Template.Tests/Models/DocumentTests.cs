@@ -56,7 +56,41 @@ namespace Words.CS.Tests.Models
                 .WithMessage($"No template found at this location: {pathToTemplate}");
         }
 
-        [Fact()]
+
+		[Fact]
+		public async Task SetTemplateAsync_WithValidStream_ShouldCreateNewDocumentInTempFolderAndSetTemplateDocPath()
+		{
+			// Arrange
+			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
+			using var sourceStream = new FileStream(pathToTemplate, FileMode.Open, FileAccess.Read);
+			Document document = new Document();
+
+			// Act
+			await document.SetTemplateAsync(sourceStream);
+
+			// Assert
+			document.PathToDoc.Should().NotBeNullOrEmpty();
+			File.Exists(document.PathToDoc).Should().BeTrue();
+			File.GetAttributes(document.PathToDoc)
+				.GetHashCode().Should()
+				.Be(File.GetAttributes(pathToTemplate).GetHashCode());
+		}
+
+		[Fact]
+		public async Task SetTemplateAsync_WithNullStream_ShouldThrowArgumentNullException()
+		{
+			// Arrange
+			Document document = new Document();
+
+			// Act
+			Func<Task> action = async () => await document.SetTemplateAsync(stream: null);
+
+			// Assert
+			await action.Should().ThrowAsync<ArgumentNullException>()
+				.WithMessage("Source stream cannot be null.*");
+		}
+
+		[Fact()]
         public async Task DocumentDestructor_WithValidPathToFile_ShouldDeleteCreatedDocumentInTemp()
         {
 			// arrange

@@ -18,6 +18,11 @@ namespace WordsCS
 			PathToTemplate = pathToTemplateDoc;
 		}
 
+		public async Task SetTemplateAsync(Stream stream)
+		{
+			PathToDoc = await GenerateTempDocAsync(stream);
+		}
+
 
 		
 
@@ -117,6 +122,42 @@ namespace WordsCS
 			catch (Exception ex)
 			{
 				throw ex;
+			}
+
+			return destinationPath;
+		}
+
+
+		private async Task<string> GenerateTempDocAsync(Stream sourceStream)
+		{
+			if(sourceStream == null)
+			{
+				throw new ArgumentNullException(nameof(sourceStream), "Source stream cannot be null.");
+			}
+					
+			if (!Directory.Exists(PathConstants.TempFolderPath))
+			{
+				Directory.CreateDirectory(PathConstants.TempFolderPath);
+			}
+
+			string fileName = $"{Guid.NewGuid()}.docx"; // or any desired naming convention
+			string destinationPath = Path.Combine(PathConstants.TempFolderPath, fileName);
+
+			try
+			{
+				// Write the content from the source stream to the destination file
+				using (FileStream destStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None))
+				{
+					await sourceStream.CopyToAsync(destStream);
+				}
+			}
+			catch (UnauthorizedAccessException ex)
+			{
+				throw new UnauthorizedAccessException("Access denied while writing to the destination file.", ex);
+			}
+			catch (Exception ex)
+			{
+				throw new IOException("An error occurred while copying the stream to the file.", ex);
 			}
 
 			return destinationPath;
