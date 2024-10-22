@@ -16,11 +16,14 @@ namespace Words.CS.Tests.Models
 {
     public class DocumentTests
     {
-        [Fact()]
+		private readonly string TEST_DOC_PATH = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
+		private readonly string TEST_DOC_FOR_DISPOSE = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\DestTest.docx";
+
+        [Fact]
         public async Task SetTemplateAsync_WithValidPathToFile_ShouldCreateNewDocumentInTempFolderAndSetTemplateDocPath()
         {
 			// arrange
-			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
+			var pathToTemplate = TEST_DOC_PATH;
 			Document document = new Document();
 
 			// act
@@ -28,7 +31,6 @@ namespace Words.CS.Tests.Models
 			await document.SetTemplateAsync(pathToTemplate);
 
             // assert
-
             document.PathToTemplate.Should().Be(pathToTemplate);            
             File.Exists(@$"{Directory.GetCurrentDirectory()}\Temp\{Path.GetFileName(pathToTemplate)}").Should().BeTrue();
             File.GetAttributes(@$"{Directory.GetCurrentDirectory()}\Temp\{Path.GetFileName(pathToTemplate)}").
@@ -37,7 +39,7 @@ namespace Words.CS.Tests.Models
                 Be(File.GetAttributes(pathToTemplate).GetHashCode());
         }
 
-        [Fact()]
+        [Fact]
         public async Task SetTemplateAsync_WithInvalidPathToFile_ShouldThrowFileNotFoundException()
         {
             // arrange
@@ -60,18 +62,18 @@ namespace Words.CS.Tests.Models
 		[Fact]
 		public async Task SetTemplateAsync_WithValidStream_ShouldCreateNewDocumentInTempFolderAndSetTemplateDocPath()
 		{
-			// Arrange
-			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
+			// arrange
+			var pathToTemplate = TEST_DOC_PATH;
 			using var sourceStream = new FileStream(pathToTemplate, FileMode.Open, FileAccess.Read);
 			Document document = new Document();
 
-			// Act
+			// act
 			await document.SetTemplateAsync(sourceStream);
 
-			// Assert
+			// assert
 			document.PathToDoc.Should().NotBeNullOrEmpty();
 			File.Exists(document.PathToDoc).Should().BeTrue();
-			File.GetAttributes(document.PathToDoc)
+			File.GetAttributes(document.PathToDoc!)
 				.GetHashCode().Should()
 				.Be(File.GetAttributes(pathToTemplate).GetHashCode());
 		}
@@ -79,22 +81,22 @@ namespace Words.CS.Tests.Models
 		[Fact]
 		public async Task SetTemplateAsync_WithNullStream_ShouldThrowArgumentNullException()
 		{
-			// Arrange
+			// arrange
 			Document document = new Document();
 
-			// Act
-			Func<Task> action = async () => await document.SetTemplateAsync(stream: null);
+			// act
+			Func<Task> action = async () => await document.SetTemplateAsync(stream: null!);
 
-			// Assert
+			// assert
 			await action.Should().ThrowAsync<ArgumentNullException>()
 				.WithMessage("Source stream cannot be null.*");
 		}
 
-		[Fact()]
+		[Fact]
         public async Task DocumentDestructor_WithValidPathToFile_ShouldDeleteCreatedDocumentInTemp()
         {
 			// arrange
-			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\DestTest.docx";
+			var pathToTemplate = TEST_DOC_FOR_DISPOSE;
 
 			// act
 			using (Document doc = new Document())
@@ -102,7 +104,7 @@ namespace Words.CS.Tests.Models
                 await doc.SetTemplateAsync(pathToTemplate);
             }
 			Thread.Sleep(1000);
-			System.GC.Collect();
+            GC.Collect();
 
 
 			// assert
@@ -110,14 +112,12 @@ namespace Words.CS.Tests.Models
 
 		}
 
-        [Fact()]
+        [Fact]
 
         public async Task FindAndReplace_WithValidPhrases_ShouldContainPhraseToReplaceThreeTimes()
         {
 			// arrange 
-
-			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
-			var fileName = Path.GetFileName(pathToTemplate);
+			var pathToTemplate = TEST_DOC_PATH;		
 
 			Document document = new Document();
 
@@ -147,12 +147,11 @@ namespace Words.CS.Tests.Models
 
 		}
 
-        [Fact()]
+        [Fact]
         public async Task FindAndReplace_WithValidPhrasesOnlyFirst_ShouldContainPhraseToReplaceOnce()
         {
             // arrange
-
-            var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
+            var pathToTemplate = TEST_DOC_PATH;
             var fileName = Path.GetFileName(pathToTemplate);
 
             Document document = new Document();
@@ -165,11 +164,9 @@ namespace Words.CS.Tests.Models
 			
 
 			// act
-
 			document.FindAndReplace(phraseToFind, phraseToReplace, true);
 
 			// assert 
-
 			document.PathToDoc.Should().NotBeNull();
 
 			using (var doc = WordprocessingDocument.Open(document.PathToDoc!, false))
@@ -186,12 +183,11 @@ namespace Words.CS.Tests.Models
 
 		}
 
-        [Fact()]
-        public async Task copyElementAfter_WithValidDocument_ShouldAddNewParagraphToDocument()
+        [Fact]
+        public async Task CopyElementAfter_WithValidDocument_ShouldAddNewParagraphToDocument()
         {
 			// arrange 
-
-			var pathToTemplate = $@"{Directory.GetCurrentDirectory()}\..\..\..\Resources\Test.docx";
+			var pathToTemplate = TEST_DOC_PATH;
 			var fileName = Path.GetFileName(pathToTemplate);
             var startingLineOfParagraphToCopy = "Name";
 
@@ -199,25 +195,47 @@ namespace Words.CS.Tests.Models
             await document.SetTemplateAsync(pathToTemplate);
 
 			// act
-
 			document.CopyElementAfter(startingLineOfParagraphToCopy);
 
             // assert           
 
-            using (var doc = WordprocessingDocument.Open(document.PathToDoc, false))
+            using (var doc = WordprocessingDocument.Open(document.PathToDoc!, false))
             {
                 doc.MainDocumentPart.Should().NotBeNull();
-                var paragraphToCopy = doc.MainDocumentPart.Document.Descendants<Paragraph>().
-                    FirstOrDefault(p => p.InnerText.Contains(startingLineOfParagraphToCopy), null);
+                var paragraphToCopy = doc.MainDocumentPart!.Document.Descendants<Paragraph>().
+                    FirstOrDefault(p => p!.InnerText.Contains(startingLineOfParagraphToCopy), null);
 
                 paragraphToCopy.Should().NotBeNull();
 
-                paragraphToCopy.ElementsAfter().First().InnerText.Should().Be(paragraphToCopy.InnerText);
-
-                
+                paragraphToCopy!.ElementsAfter().First().InnerText.Should().Be(paragraphToCopy.InnerText);                
             }
 
         }
+
+		[Fact]
+		public async Task CopyElementAfter_WithInvalidStartLineOfParagraph_ShouldThrowArgumentException()
+		{
+			// arrange
+			var pathToTemplate = TEST_DOC_PATH;
+			var fileName = Path.GetFileName(pathToTemplate);
+			var startingLineOfParagraphToCopy = "Not Found";
+
+			Document document = new Document();
+			await document.SetTemplateAsync(pathToTemplate);
+
+			// act 
+			Func<Task> func = () => 
+			{
+				document.CopyElementAfter(startingLineOfParagraphToCopy); 
+				return Task.CompletedTask;
+			};
+
+            // assert 						 
+            _ = func.Should().ThrowAsync<ArgumentException>()
+                .WithMessage("Document doesnot conatin starting line of paragraph specified.");
+
+			
+		}
 
 	}
 }

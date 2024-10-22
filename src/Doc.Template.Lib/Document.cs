@@ -7,10 +7,13 @@ namespace WordsCS
 {
 	public class Document : IDisposable
 	{
+
+		public string? PathToTemplate { get; set; }
+        public string? PathToDoc { get; set; }
+
 		public Document()
 		{			
 		}
-
 
 		public async Task SetTemplateAsync(string pathToTemplateDoc)
 		{
@@ -21,14 +24,11 @@ namespace WordsCS
 		public async Task SetTemplateAsync(Stream stream)
 		{
 			PathToDoc = await GenerateTempDocAsync(stream);
-		}
-
-
-		
+		}		
 
         ~Document()
 		{
-			Dispose();
+            ((IDisposable)this).Dispose();
 		}
 
 
@@ -80,13 +80,17 @@ namespace WordsCS
 				}
 
 				var document = docWord.MainDocumentPart.Document;
-
-				var copyParagraph = document.Descendants<Paragraph>().FirstOrDefault(p => p.InnerText.Contains(startingLineOfParagraphToCopy), null);
 				
-				
+				var copyParagraph = document.Descendants<Paragraph>().FirstOrDefault(p => p!.InnerText.Contains(startingLineOfParagraphToCopy), null);
+															
 				if(copyParagraph is not null)
 				{
 					copyParagraph.InsertAfterSelf(new Paragraph(copyParagraph.OuterXml));
+				}
+				else
+				{
+					throw new ArgumentException("Document doesnot conatin starting line of paragraph specified.");
+
 				}				
 			}
 		}
@@ -115,14 +119,14 @@ namespace WordsCS
 					}
 				}
 			}
-			catch (UnauthorizedAccessException ex)
-			{
-				throw ex;				
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-			}
+			catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+			catch (Exception)
+            {
+                throw;
+            }
 
 			return destinationPath;
 		}
@@ -163,8 +167,7 @@ namespace WordsCS
 			return destinationPath;
 		}
 
-
-		public void Dispose()
+        public void Dispose()
 		{						
 			if(PathToDoc is not null)
 			{
@@ -172,12 +175,7 @@ namespace WordsCS
 			}			
 		}
 
-		public string? PathToTemplate { get; set; }
-        public string? PathToDoc { get; set; }
-
-        private string? xml_document;
-		private string? xml_path;
-		private string? folder_path;
+		
 			
 	}
 }
